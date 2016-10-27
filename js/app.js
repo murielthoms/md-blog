@@ -1,59 +1,48 @@
+
 (function(){
 	"use strict";
 	var app = {
+		urlBase:"http://192.168.1.40:1337/",
+		urlJson:"menu.json",
 
-		article: null,
 
 		init:function(){
-
-			app.listeners();
-			this.appelAlice();
-			this.json();
+			$.ajax(this.urlBase + this.urlJson).done(this.doneSuccess.bind(this)).fail(this.failError);
+		
 		},
 
-		listeners:function(){
-			$('#btn').on('click', this.appelAlice.bind(this));
-			$('#').on('click', this.json.bind(this));
-		},
+		doneSuccess: function(data){
+			for(var i = 0; i < data.menu.length; i++) {
+				var article = data.menu[i];
+				var liens = '<li><a href="#" class="linkArticle" data-path="'+
+				article.path+'">' + article.title + '</a></li>';
+				console.log(article);
+				$('#link').append(liens);
+			}
+			$('.linkArticle').click(this.clickLien);
 			
-
-		appelAlice:function(){
-			var url = "http://192.168.1.40:1337/alice.md";
-			$.ajax(url).done(this.ajaxDone);
 		},
+		
 
-		ajaxDone: function(data){
-			app.listeners();
-			this.article = data;
-			var alice = new showdown.Converter(),
-			text = this.article,
-			html = alice.makeHtml(text);
-			console.log(html);
-
-			$('#md').html(html);
+		clickLien: function(){
+			var transformJquery = $(this);
+			var path = transformJquery.data('path');
+			console.log(path);
+			$.ajax(app.urlBase + path).done(function(data){
+				var converter = new showdown.Converter();
+				var html = converter.makeHtml(data);
+				$('#md').html(html);
+				console.log(html);
+			});
 		},
-
-		json: function(){
-			var url = "http://192.168.1.40:1337/menu.json";
-			$.ajax(url).done(this.ajxDone);
-
+		failError: function(){	
+			console.log('erreur');
 		},
-		ajxDone: function(data){
-			app.listeners();
-			for(var i = 0; i < data.menu.length; i++){
-				var title = data.menu[i].title;
-				$('#titre').append('<button id="btn'+i+'">'+ title +'</button>');
-			
-				}
-		},
-
-
-
-
 	};
 
-
 	$(document).ready(function(){
-		app.init();
+
+		app.init();   
+
 	});
 })();
